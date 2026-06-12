@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WMS Gudang — Sistem Manajemen Gudang</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.4.0/dist/css/tabler.min.css">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue:       #185FA5;
+  --blue-dk:    #0C447C;
+  --blue-lt:    #E6F1FB;
+  --blue-bd:    #A8CEEE;
+  --green-lt:   #EAF3DE;
+  --green-dk:   #27500A;
+  --green-bd:   #C0DD97;
+  --amber-lt:   #FAEEDA;
+  --amber-dk:   #633806;
+  --amber-bd:   #FAC775;
+  --red-lt:     #FCEBEB;
+  --red-dk:     #791F1F;
+  --red-bd:     #F4AAAA;
+  --bg:         #F5F4F0;
+  --bg2:        #EEECEA;
+  --bg3:        #E6E4DF;
+  --surface:    #FFFFFF;
+  --border:     #D8D5CF;
+  --border-lt:  #E8E6E1;
+  --text:       #1A1917;
+  --text2:      #5C5A56;
+  --text3:      #9B9892;
+  --radius:     8px;
+  --radius-sm:  5px;
+  --radius-lg:  12px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+}
+html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+input, select, button, textarea { font-family: inherit; font-size: 13px; }
+input, select {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+  outline: none; transition: border-color .15s;
+}
+input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,95,165,.12); }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ===== LOGIN ===== */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0C2E4F 0%, #185FA5 55%, #0F6E56 100%);
+}
+.login-box {
+  background: var(--surface); border-radius: var(--radius-lg); padding: 36px 32px;
+  width: 360px; box-shadow: var(--shadow-md);
+}
+.login-logo { text-align: center; margin-bottom: 28px; }
+.login-logo .icon { font-size: 40px; color: var(--blue); display: block; margin-bottom: 10px; }
+.login-logo h1 { font-size: 22px; font-weight: 600; letter-spacing: -.3px; }
+.login-logo p { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.login-users { display: flex; flex-direction: column; gap: 8px; }
+.login-user-btn {
+  display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+  border: 1.5px solid var(--border-lt); border-radius: var(--radius); background: var(--surface);
+  cursor: pointer; width: 100%; text-align: left; transition: all .15s;
+}
+.login-user-btn:hover { border-color: var(--blue); background: var(--blue-lt); }
+.login-user-btn .av {
+  width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0;
+}
+.login-user-btn .info { flex: 1; }
+.login-user-btn .uname { font-size: 14px; font-weight: 500; }
+.login-pw { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-lt); }
+.pw-hint { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-lt); text-align: center; font-size: 11px; color: var(--text3); }
+
+/* ===== LAYOUT ===== */
+#main-app { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+  background: #0C2E4F; color: #fff; padding: 0 20px; height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.topbar-logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; letter-spacing: -.2px; }
+.topbar-logo i { font-size: 22px; color: #5BB3F0; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-badge { font-size: 11px; background: rgba(255,255,255,.12); padding: 3px 10px; border-radius: 20px; color: rgba(255,255,255,.85); }
+.topbar-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(255,255,255,.9); }
+.topbar-av { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+
+.nav {
+  background: var(--surface); border-bottom: 1px solid var(--border-lt);
+  display: flex; padding: 0 16px; overflow-x: auto; gap: 0;
+}
+.nav-tab {
+  padding: 10px 14px; font-size: 13px; font-weight: 400; color: var(--text2);
+  border-bottom: 2px solid transparent; cursor: pointer; display: flex;
+  align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0;
+  transition: color .15s;
+}
+.nav-tab i { font-size: 15px; }
+.nav-tab:hover { color: var(--blue); }
+.nav-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 500; }
+.nav-tab.locked { opacity: .35; cursor: not-allowed; pointer-events: none; }
+
+.content { padding: 18px; flex: 1; max-width: 1400px; margin: 0 auto; width: 100%; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ===== COMPONENTS ===== */
+.card {
+  background: var(--surface); border: 1px solid var(--border-lt);
+  border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.card-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 7px; margin-bottom: 14px; color: var(--text); }
+.card-title i { font-size: 17px; color: var(--blue); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+.metric {
+  background: var(--bg2); border-radius: var(--radius); padding: 14px 16px;
+  border: 1px solid var(--border-lt);
+}
+.metric-label { font-size: 11px; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+.metric-val { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1; }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+.form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+.fg { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 90px; }
+.fg label { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
+  border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  transition: all .15s; white-space: nowrap;
+}
+.btn:hover { background: var(--bg2); }
+.btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-primary:hover { background: var(--blue-dk); border-color: var(--blue-dk); }
+.btn-danger { background: var(--red-lt); color: var(--red-dk); border-color: var(--red-bd); }
+.btn-danger:hover { background: #f8d7d7; }
+.btn-green { background: var(--green-lt); color: var(--green-dk); border-color: var(--green-bd); }
+.btn-green:hover { background: #d8ecbe; }
+.btn-amber { background: var(--amber-lt); color: var(--amber-dk); border-color: var(--amber-bd); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; }
+.btn-icon { padding: 7px; }
+
+/* TAGS & BADGES */
+.tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 500; }
+.tag-blue  { background: var(--blue-lt);  color: var(--blue-dk); }
+.tag-green { background: var(--green-lt); color: var(--green-dk); }
+.tag-amber { background: var(--amber-lt); color: var(--amber-dk); }
+.tag-red   { background: var(--red-lt);   color: var(--red-dk); }
+.tag-gray  { background: var(--bg3); color: var(--text2); }
+.role-admin    { background: var(--blue-lt);  color: var(--blue-dk); padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.role-operator { background: var(--green-lt); color: var(--green-dk); padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.role-viewer   { background: var(--bg3); color: var(--text2); padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+
+.loc-code { font-family: var(--mono); font-size: 11px; background: var(--blue-lt); color: var(--blue-dk); padding: 2px 7px; border-radius: var(--radius-sm); }
+.exp-ok      { background: var(--green-lt); color: var(--green-dk); padding: 2px 7px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 500; }
+.exp-near    { background: var(--amber-lt); color: var(--amber-dk); padding: 2px 7px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 500; }
+.exp-expired { background: var(--red-lt);   color: var(--red-dk);   padding: 2px 7px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 500; }
+.pill-in   { background: var(--green-lt); color: var(--green-dk); padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.pill-out  { background: var(--red-lt);   color: var(--red-dk);   padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.pill-pick { background: var(--amber-lt); color: var(--amber-dk); padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+
+/* ALERTS */
+.alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px; }
+.alert i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.alert-success { background: var(--green-lt); color: var(--green-dk); border: 1px solid var(--green-bd); }
+.alert-danger  { background: var(--red-lt);   color: var(--red-dk);   border: 1px solid var(--red-bd); }
+.alert-info    { background: var(--blue-lt);  color: var(--blue-dk);  border: 1px solid var(--blue-bd); }
+.alert-amber   { background: var(--amber-lt); color: var(--amber-dk); border: 1px solid var(--amber-bd); }
+
+/* TABLE */
+.tbl-wrap { overflow-x: auto; margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border-lt); font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--border-lt); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg); }
+
+/* HISTORY ITEM */
+.hi { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-lt); }
+.hi:last-child { border-bottom: none; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border-lt); margin: 14px 0; }
+
+/* ===== SCAN PREVIEW ===== */
+.loc-preview {
+  background: var(--blue-lt); border: 1px solid var(--blue-bd); border-radius: var(--radius);
+  padding: 14px; text-align: center; margin-bottom: 12px;
+}
+.loc-preview-code { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--blue); letter-spacing: 2px; }
+.loc-preview-sub { font-size: 12px; color: var(--blue-dk); margin-top: 4px; }
+
+/* ===== RAK VISUALIZER ===== */
+.gudang-tabs { display: flex; gap: 2px; margin-bottom: 14px; background: var(--bg2); border-radius: var(--radius-sm); padding: 3px; border: 1px solid var(--border-lt); width: fit-content; }
+.gudang-tab { padding: 6px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); transition: all .15s; }
+.gudang-tab.active { background: var(--blue); color: #fff; }
+.rak-legend { display: flex; gap: 14px; font-size: 11px; margin-bottom: 10px; flex-wrap: wrap; }
+.rak-legend span { display: inline-flex; align-items: center; gap: 5px; color: var(--text2); }
+.rak-legend .swatch { width: 14px; height: 11px; border-radius: 2px; border: 1px solid rgba(0,0,0,.1); flex-shrink: 0; }
+.rak-outer { overflow-x: auto; padding-bottom: 8px; }
+.rak-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+.rak-unit { }
+.rak-unit-label { font-size: 10px; font-weight: 600; color: var(--text2); text-align: center; margin-bottom: 3px; }
+.rak-cols-label { display: flex; gap: 1px; margin-bottom: 2px; padding-left: 14px; }
+.rak-col-lbl { width: 16px; text-align: center; font-size: 9px; color: var(--text3); }
+.rak-lvl-row { display: flex; align-items: center; gap: 2px; margin-bottom: 1px; }
+.rak-lvl-lbl { width: 12px; text-align: right; font-size: 9px; color: var(--text3); flex-shrink: 0; }
+.rc { width: 16px; height: 13px; border-radius: 2px; cursor: pointer; border: 1px solid rgba(0,0,0,.08); transition: transform .1s; }
+.rc:hover { transform: scale(1.3); z-index: 1; position: relative; }
+.rc.oL  { background: #7EC8F7; }
+.rc.oR  { background: #6ED4B0; }
+.rc.oLR { background: #A8D85A; }
+.rc.emp { background: var(--surface); }
+
+/* ===== FIFO/FEFO PICK CARD ===== */
+.pick-card {
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px;
+  border-left: 4px solid var(--blue); background: var(--surface); box-shadow: var(--shadow);
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.pick-card.exp-warn { border-left-color: #C07800; }
+.pick-card.exp-danger { border-left-color: #A32D2D; }
+.pick-num {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--blue); color: #fff;
+  font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pick-num.warn { background: #C07800; }
+.pick-num.danger { background: #A32D2D; }
+.pick-body { flex: 1; min-width: 0; }
+.pick-name { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+.pick-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--text2); }
+.pick-meta span { display: flex; align-items: center; gap: 4px; }
+.pick-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+
+/* ===== LABEL PRINT ===== */
+.label-wrap { display: flex; justify-content: center; padding: 16px; background: var(--bg2); border-radius: var(--radius); }
+.wms-label {
+  background: #fff; color: #000; border: 2px solid #000; border-radius: 4px;
+  font-family: var(--mono); padding: 12px 14px; box-shadow: 2px 2px 6px rgba(0,0,0,.15);
+}
+.wms-label .l-title { font-weight: 700; text-align: center; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 8px; font-family: var(--font); }
+.wms-label .l-barcode { font-size: 32px; letter-spacing: 5px; text-align: center; border: 1px solid #999; padding: 5px; border-radius: 3px; margin-bottom: 8px; font-weight: 700; overflow: hidden; }
+.wms-label .l-loc { font-size: 26px; font-weight: 700; text-align: center; background: #EBF2FF; padding: 6px; border-radius: 3px; letter-spacing: 2px; margin-bottom: 8px; }
+.wms-label .l-row { display: flex; justify-content: space-between; font-size: 11px; border-top: 1px solid #e0e0e0; padding-top: 6px; margin-top: 4px; }
+.wms-label .l-foot { text-align: center; font-size: 9px; color: #666; margin-top: 6px; font-family: var(--font); }
+
+/* ===== USER MANAGEMENT ===== */
+.user-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border-lt); }
+.user-row:last-child { border-bottom: none; }
+.user-av { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 500; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface); border-radius: var(--radius-lg); padding: 22px 24px;
+  width: 400px; max-width: 100%; max-height: 90vh; overflow-y: auto;
+  box-shadow: var(--shadow-md);
+}
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+.modal-loc-big {
+  font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--blue);
+  text-align: center; padding: 16px; background: var(--blue-lt); border-radius: var(--radius);
+  margin: 12px 0; letter-spacing: 3px;
+}
+
+/* ===== TOAST ===== */
+#toast-container { position: fixed; bottom: 24px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 11px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px;
+  animation: slideIn .25s ease; min-width: 240px; max-width: 360px;
+}
+.toast-success { background: var(--green-dk); color: #fff; }
+.toast-danger  { background: var(--red-dk);   color: #fff; }
+.toast-info    { background: var(--blue);      color: #fff; }
+@keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOut { from { opacity: 1; } to { opacity: 0; transform: translateX(120%); } }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .grid2, .grid4 { grid-template-columns: 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr; }
+  .content { padding: 12px; }
+  .card { padding: 14px 16px; }
+  .topbar { padding: 0 12px; }
+  .nav { padding: 0 8px; }
+}
+
+/* ===== PRINT ===== */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .wms-label { box-shadow: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <i class="ti ti-building-warehouse icon"></i>
+      <h1>WMS Gudang</h1>
+      <p>Sistem Manajemen Gudang</p>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px;font-weight:500;text-transform:uppercase;letter-spacing:.5px">Pilih Akun</p>
+    <div class="login-users" id="login-user-list"></div>
+    <div class="login-pw" id="login-pw-wrap" style="display:none">
+      <div class="fg" style="margin-bottom:10px">
+        <label>Password</label>
+        <input type="password" id="login-pw-input" placeholder="Masukkan password..." onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1" onclick="doLogin()"><i class="ti ti-login"></i> Masuk</button>
+        <button class="btn btn-icon" onclick="cancelPw()"><i class="ti ti-x"></i></button>
+      </div>
+      <div id="login-err" style="margin-top:8px"></div>
+    </div>
+    <div class="pw-hint">Demo: admin/admin123 &nbsp;·&nbsp; operator/op123 &nbsp;·&nbsp; viewer/view123</div>
+  </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="main-app" style="display:none">
+  <!-- TOPBAR -->
+  <div class="topbar no-print">
+    <div class="topbar-logo">
+      <i class="ti ti-building-warehouse"></i>
+      WMS Gudang
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-badge" id="hdr-count">0 item</span>
+      <div class="topbar-user">
+        <div class="topbar-av" id="hdr-av"></div>
+        <div>
+          <div style="font-size:13px;font-weight:500;line-height:1.2" id="hdr-name"></div>
+          <div id="hdr-role"></div>
+        </div>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff;margin-left:4px" onclick="logout()">
+          <i class="ti ti-logout"></i> Keluar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav no-print" id="main-nav">
+    <div class="nav-tab active" data-tab="dashboard"><i class="ti ti-dashboard"></i> Dashboard</div>
+    <div class="nav-tab" data-tab="scan" data-roles="admin,operator"><i class="ti ti-scan"></i> Scan Masuk</div>
+    <div class="nav-tab" data-tab="fifo" data-roles="admin,operator"><i class="ti ti-sort-ascending-2"></i> FIFO / FEFO</div>
+    <div class="nav-tab" data-tab="inventory"><i class="ti ti-package"></i> Inventori</div>
+    <div class="nav-tab" data-tab="rak"><i class="ti ti-layout-grid"></i> Visualisasi Rak</div>
+    <div class="nav-tab" data-tab="label" data-roles="admin,operator"><i class="ti ti-printer"></i> Cetak Label</div>
+    <div class="nav-tab" data-tab="keluar" data-roles="admin,operator"><i class="ti ti-arrow-bar-right"></i> Barang Keluar</div>
+    <div class="nav-tab" data-tab="users" data-roles="admin"><i class="ti ti-users"></i> Pengguna</div>
+    <div class="nav-tab" data-tab="log"><i class="ti ti-history"></i> Log</div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="section active" id="tab-dashboard">
+      <div class="grid4" style="margin-bottom:14px">
+        <div class="metric"><div class="metric-label">Total Item Aktif</div><div class="metric-val" id="m-total">0</div><div class="metric-sub">seluruh gudang</div></div>
+        <div class="metric"><div class="metric-label">Slot Terisi</div><div class="metric-val" id="m-slots">0</div><div class="metric-sub">dari 12.600 slot</div></div>
+        <div class="metric"><div class="metric-label">Hampir Expired</div><div class="metric-val" id="m-near" style="color:#C07800">0</div><div class="metric-sub">≤ 30 hari</div></div>
+        <div class="metric"><div class="metric-label">Sudah Expired</div><div class="metric-val" id="m-exp" style="color:#A32D2D">0</div><div class="metric-sub">segera keluarkan</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-building-warehouse"></i> Kapasitas Gudang</div>
+          <div id="dash-caps"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-activity"></i> Aktivitas Terbaru</div>
+          <div id="dash-activity"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#C07800"><i class="ti ti-alert-triangle"></i> Peringatan Expiry</div>
+        <div id="dash-expiry"></div>
+      </div>
+    </div>
+
+    <!-- ===== SCAN MASUK ===== -->
+    <div class="section" id="tab-scan">
+      <div class="grid2">
+        <div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-scan"></i> Input Barang Masuk</div>
+            <div style="background:var(--bg);border-radius:var(--radius);padding:14px;margin-bottom:12px;border:1px solid var(--border-lt)">
+              <div class="fg" style="margin-bottom:10px">
+                <label>Nama / Kode Barang</label>
+                <input type="text" id="s-nama" placeholder="Scan barcode atau ketik nama barang...">
+              </div>
+              <div class="form-row">
+                <div class="fg"><label>Qty</label><input type="number" id="s-qty" value="1" min="1"></div>
+                <div class="fg"><label>Satuan</label><select id="s-sat"><option>pcs</option><option>karton</option><option>kg</option><option>liter</option><option>dus</option><option>roll</option><option>set</option></select></div>
+                <div class="fg"><label>Expired Date</label><input type="date" id="s-exp"></div>
+              </div>
+            </div>
+            <div class="card-title"><i class="ti ti-map-pin"></i> Lokasi Penempatan</div>
+            <div class="form-row">
+              <div class="fg"><label>Gudang</label>
+                <select id="s-gd">
+                  <option value="anteroom">Anteroom</option>
+                  <option value="a">Gudang A</option>
+                  <option value="b">Gudang B</option>
+                  <option value="c">Gudang C</option>
+                </select>
+              </div>
+              <div class="fg"><label>Rak (1–25)</label><select id="s-rak"></select></div>
+              <div class="fg"><label>Bay (1–9)</label><select id="s-bay"></select></div>
+              <div class="fg"><label>Level (1–7)</label><select id="s-lvl"></select></div>
+              <div class="fg"><label>Sisi</label>
+                <select id="s-sisi"><option value="L">Kiri (L)</option><option value="R">Kanan (R)</option></select>
+              </div>
+            </div>
+            <div class="loc-preview" id="s-preview">
+              <div style="font-size:11px;color:var(--blue-dk);font-weight:500;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">Preview Lokasi</div>
+              <div class="loc-preview-code" id="s-loc-text">—</div>
+              <div class="loc-preview-sub" id="s-conflict-info"></div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-primary" onclick="submitScan()"><i class="ti ti-check"></i> Simpan Masuk</button>
+              <button class="btn" onclick="clearScan()"><i class="ti ti-eraser"></i> Bersihkan</button>
+              <button class="btn btn-green btn-sm" onclick="scanGoLabel()"><i class="ti ti-printer"></i> Cetak Label</button>
+            </div>
+            <div id="s-msg" style="margin-top:10px"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-clock"></i> Scan Hari Ini</div>
+            <div id="scan-history"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FIFO / FEFO ===== -->
+    <div class="section" id="tab-fifo">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-sort-ascending-2"></i> Rekomendasi Pengambilan FIFO / FEFO</div>
+        <div class="alert alert-info" style="margin-bottom:14px">
+          <i class="ti ti-info-circle"></i>
+          <div>
+            <strong>FIFO</strong> — ambil stok yang masuk paling awal.<br>
+            <strong>FEFO</strong> — ambil stok yang tanggal expired-nya paling dekat.<br>
+            Sistem mengurutkan dan menghitung lokasi pengambilan secara otomatis.
+          </div>
+        </div>
+        <div class="form-row" style="align-items:flex-end">
+          <div class="fg" style="max-width:280px">
+            <label>Nama Barang</label>
+            <input type="text" id="ff-nama" placeholder="Ketik nama barang..." oninput="renderFifo()">
+          </div>
+          <div class="fg" style="max-width:260px">
+            <label>Metode</label>
+            <select id="ff-mode" onchange="renderFifo()">
+              <option value="fefo">FEFO — Prioritas expired terdekat</option>
+              <option value="fifo">FIFO — Prioritas masuk pertama</option>
+            </select>
+          </div>
+          <div class="fg" style="max-width:140px">
+            <label>Qty Dibutuhkan</label>
+            <input type="number" id="ff-need" value="1" min="1" oninput="renderFifo()">
+          </div>
+        </div>
+        <div id="ff-result" style="margin-top:6px"></div>
+      </div>
+    </div>
+
+    <!-- ===== INVENTORI ===== -->
+    <div class="section" id="tab-inventory">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="card-title" style="margin:0"><i class="ti ti-package"></i> Semua Barang Aktif</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-green" onclick="goTab('label');fillLabelDropdown();"><i class="ti ti-printer"></i> Cetak Label</button>
+            <button class="btn btn-sm" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <input type="text" id="inv-q" placeholder="Cari nama atau lokasi..." style="flex:1;min-width:160px" oninput="renderInv()">
+          <select id="inv-gf" onchange="renderInv()">
+            <option value="">Semua Gudang</option>
+            <option value="anteroom">Anteroom</option>
+            <option value="a">Gudang A</option>
+            <option value="b">Gudang B</option>
+            <option value="c">Gudang C</option>
+          </select>
+          <select id="inv-ef" onchange="renderInv()">
+            <option value="">Semua Status Expiry</option>
+            <option value="expired">Sudah Expired</option>
+            <option value="near">Hampir Expired (≤30 hari)</option>
+            <option value="ok">Masih Aman</option>
+          </select>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>Nama Barang</th><th>Lokasi</th><th>Gudang</th>
+              <th>Qty</th><th>Sat</th><th>Expired</th><th>Status</th>
+              <th>Tgl Masuk</th><th>Input Oleh</th><th>Aksi</th>
+            </tr></thead>
+            <tbody id="inv-body"></tbody>
+          </table>
+        </div>
+        <div id="inv-count" style="margin-top:10px;font-size:12px;color:var(--text2)"></div>
+      </div>
+    </div>
+
+    <!-- ===== VISUALISASI RAK ===== -->
+    <div class="section" id="tab-rak">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-layout-grid"></i> Peta Rak Gudang</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+          <div class="gudang-tabs" id="gudang-tabs">
+            <div class="gudang-tab active" data-g="anteroom" onclick="selGudang('anteroom')">Anteroom</div>
+            <div class="gudang-tab" data-g="a" onclick="selGudang('a')">Gudang A</div>
+            <div class="gudang-tab" data-g="b" onclick="selGudang('b')">Gudang B</div>
+            <div class="gudang-tab" data-g="c" onclick="selGudang('c')">Gudang C</div>
+          </div>
+          <div id="rak-g-stat" style="font-size:12px;color:var(--text2)"></div>
+        </div>
+        <div class="rak-legend">
+          <span><span class="swatch" style="background:#7EC8F7"></span> Kiri (L)</span>
+          <span><span class="swatch" style="background:#6ED4B0"></span> Kanan (R)</span>
+          <span><span class="swatch" style="background:#A8D85A"></span> Kiri + Kanan</span>
+          <span><span class="swatch" style="background:var(--surface)"></span> Kosong</span>
+        </div>
+        <div class="rak-outer"><div class="rak-grid" id="rak-container"></div></div>
+        <div id="rak-tip" style="margin-top:12px;padding:10px 14px;background:var(--bg2);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);min-height:40px">
+          Klik sel untuk melihat isi lokasi.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CETAK LABEL ===== -->
+    <div class="section" id="tab-label">
+      <div class="grid2">
+        <div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-printer"></i> Konfigurasi Label</div>
+            <div class="fg" style="margin-bottom:10px">
+              <label>Ambil dari Inventori</label>
+              <select id="lbl-item" onchange="fillLabelFromItem()">
+                <option value="">— Pilih barang dari inventori —</option>
+              </select>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--radius);padding:14px;border:1px solid var(--border-lt)">
+              <div class="form-row">
+                <div class="fg"><label>Nama Barang</label><input type="text" id="lbl-nama" placeholder="Nama produk" oninput="renderLabel()"></div>
+                <div class="fg"><label>Kode / SKU</label><input type="text" id="lbl-kode" placeholder="SKU-001" oninput="renderLabel()"></div>
+              </div>
+              <div class="form-row">
+                <div class="fg"><label>Gudang</label>
+                  <select id="lbl-gd" onchange="renderLabel()">
+                    <option value="anteroom">Anteroom</option>
+                    <option value="a">Gudang A</option>
+                    <option value="b">Gudang B</option>
+                    <option value="c">Gudang C</option>
+                  </select>
+                </div>
+                <div class="fg"><label>Rak</label><select id="lbl-rak" onchange="renderLabel()"></select></div>
+                <div class="fg"><label>Bay</label><select id="lbl-bay" onchange="renderLabel()"></select></div>
+                <div class="fg"><label>Level</label><select id="lbl-lvl" onchange="renderLabel()"></select></div>
+                <div class="fg"><label>Sisi</label>
+                  <select id="lbl-sisi" onchange="renderLabel()">
+                    <option value="L">Kiri (L)</option><option value="R">Kanan (R)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="fg"><label>Qty</label><input type="number" id="lbl-qty" value="1" oninput="renderLabel()"></div>
+                <div class="fg"><label>Satuan</label><select id="lbl-sat" onchange="renderLabel()"><option>pcs</option><option>karton</option><option>kg</option><option>liter</option><option>dus</option></select></div>
+                <div class="fg"><label>Expired Date</label><input type="date" id="lbl-exp" oninput="renderLabel()"></div>
+              </div>
+              <div class="form-row">
+                <div class="fg" style="max-width:120px"><label>Jumlah Label</label><input type="number" id="lbl-count" value="1" min="1" max="100" oninput="document.getElementById('lbl-count-disp').textContent=this.value"></div>
+                <div class="fg"><label>Ukuran</label>
+                  <select id="lbl-size" onchange="renderLabel()">
+                    <option value="sm">Kecil (50×30 mm)</option>
+                    <option value="md" selected>Sedang (100×60 mm)</option>
+                    <option value="lg">Besar (150×100 mm)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+              <button class="btn btn-primary" onclick="printLabel()"><i class="ti ti-printer"></i> Cetak Label</button>
+              <button class="btn btn-green" onclick="printLabel()"><i class="ti ti-copy"></i> Cetak <span id="lbl-count-disp">1</span>x</button>
+              <button class="btn btn-sm" onclick="downloadLabelHtml()"><i class="ti ti-download"></i> Simpan HTML</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="position:sticky;top:70px">
+            <div class="card-title"><i class="ti ti-eye"></i> Preview Label</div>
+            <div class="label-wrap" id="label-preview-wrap"></div>
+            <div class="alert alert-info" style="margin-top:12px">
+              <i class="ti ti-info-circle"></i>
+              <div style="font-size:12px">Klik <strong>Cetak</strong> untuk membuka dialog print browser. Sesuaikan ukuran kertas di pengaturan printer.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== BARANG KELUAR ===== -->
+    <div class="section" id="tab-keluar">
+      <div class="grid2">
+        <div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-arrow-bar-right"></i> Keluarkan Barang</div>
+            <div class="alert alert-amber" style="margin-bottom:12px">
+              <i class="ti ti-bulb"></i>
+              <span>Gunakan tab <strong>FIFO/FEFO</strong> untuk urutan pengambilan yang benar secara otomatis.</span>
+            </div>
+            <div class="fg" style="margin-bottom:10px">
+              <label>Cari Barang</label>
+              <input type="text" id="out-q" placeholder="Ketik nama atau kode lokasi..." oninput="renderOutSearch()">
+            </div>
+            <div id="out-results"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-history"></i> Riwayat Keluar</div>
+            <div id="out-hist"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PENGGUNA ===== -->
+    <div class="section" id="tab-users">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-title" style="margin:0"><i class="ti ti-users"></i> Manajemen Pengguna</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddUser()"><i class="ti ti-plus"></i> Tambah User</button>
+        </div>
+        <div id="user-list-wrap"></div>
+      </div>
+    </div>
+
+    <!-- ===== LOG ===== -->
+    <div class="section" id="tab-log">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="card-title" style="margin:0"><i class="ti ti-history"></i> Log Semua Aktivitas</div>
+          <div style="display:flex;gap:8px">
+            <select id="log-uf" onchange="renderLog()" style="font-size:13px">
+              <option value="">Semua User</option>
+            </select>
+            <select id="log-af" onchange="renderLog()" style="font-size:13px">
+              <option value="">Semua Aksi</option>
+              <option value="MASUK">Masuk</option>
+              <option value="KELUAR">Keluar</option>
+              <option value="PICK">Pick (FIFO/FEFO)</option>
+            </select>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Waktu</th><th>User</th><th>Role</th><th>Aksi</th><th>Barang</th><th>Lokasi</th><th>Qty</th></tr></thead>
+            <tbody id="log-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main-app -->
+
+<!-- MODAL DETAIL -->
+<div class="modal-overlay" id="modal-ov" onclick="if(event.target===this)closeMod()">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Detail Barang</div>
+    <div id="modal-content"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH USER -->
+<div class="modal-overlay" id="adduser-ov" onclick="if(event.target===this)closeAddUser()">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-user-plus"></i> Tambah Pengguna</div>
+    <div class="fg" style="margin-bottom:8px"><label>Nama Lengkap</label><input type="text" id="nu-name" placeholder="Nama lengkap"></div>
+    <div class="fg" style="margin-bottom:8px"><label>Username</label><input type="text" id="nu-user" placeholder="username (tanpa spasi)"></div>
+    <div class="fg" style="margin-bottom:8px"><label>Password</label><input type="password" id="nu-pw" placeholder="password"></div>
+    <div class="fg" style="margin-bottom:14px">
+      <label>Role / Hak Akses</label>
+      <select id="nu-role">
+        <option value="admin">Admin — Akses penuh termasuk manajemen user</option>
+        <option value="operator">Operator — Scan, FIFO/FEFO, cetak label, keluar</option>
+        <option value="viewer">Viewer — Hanya lihat dashboard & inventori</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveNewUser()"><i class="ti ti-check"></i> Simpan</button>
+      <button class="btn" onclick="closeAddUser()"><i class="ti ti-x"></i> Batal</button>
+    </div>
+    <div id="nu-err" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+'use strict';
+/* ======================================================
+   CONSTANTS & DATA
+====================================================== */
+const GN = { anteroom:'Anteroom', a:'Gudang A', b:'Gudang B', c:'Gudang C' };
+const GUDANGS = ['anteroom','a','b','c'];
+const RACKS=25, BAYS=9, LEVELS=7;
+const AV_COLORS = ['#185FA5','#0F6E56','#993C1D','#993556','#6D3B11','#3B6D11'];
+
+/* ---- LOAD / SAVE ---- */
+function load(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e) { return def; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+let users = load('wms_users', null);
+if (!users) {
+  users = [
+    { id:'u1', name:'Admin Gudang', username:'admin',    pw:'admin123',  role:'admin',    color:'#185FA5' },
+    { id:'u2', name:'Budi Operator', username:'operator', pw:'op123',     role:'operator', color:'#0F6E56' },
+    { id:'u3', name:'Rina Viewer',   username:'viewer',   pw:'view123',   role:'viewer',   color:'#993C1D' }
+  ];
+  save('wms_users', users);
+}
+
+let inventory = load('wms_inv', []);
+let actLog    = load('wms_log', []);
+let currentUser = null;
+let selectedGudang = 'anteroom';
+let lastScanItem   = null;
+let loginTarget    = null;
+let modalItemId    = null;
+
+function saveAll() {
+  save('wms_inv', inventory);
+  save('wms_log', actLog);
+  save('wms_users', users);
+}
+
+/* ======================================================
+   UTILITIES
+====================================================== */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function initials(name) {
+  return name.trim().split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+
+function locCode(r,b,l,s) { return `${r}-${b}-${l}-${s}`; }
+function locFull(g,r,b,l,s) { return `${GN[g]}: R${r}-${b}-${l}-${s}`; }
+
+function expiryStatus(d) {
+  if (!d) return 'ok';
+  const diff = Math.floor((new Date(d) - new Date()) / 864e5);
+  if (diff < 0) return 'expired';
+  if (diff <= 30) return 'near';
+  return 'ok';
+}
+function daysLeft(d) {
+  return Math.floor((new Date(d) - new Date()) / 864e5);
+}
+function expBadge(d) {
+  const s = expiryStatus(d);
+  if (s === 'expired') return `<span class="exp-expired"><i class="ti ti-x" style="font-size:10px"></i> Expired</span>`;
+  if (s === 'near') { const dl = daysLeft(d); return `<span class="exp-near"><i class="ti ti-clock" style="font-size:10px"></i> ${dl} hari</span>`; }
+  return `<span class="exp-ok"><i class="ti ti-check" style="font-size:10px"></i> Aman</span>`;
+}
+
+function roleBadge(r) {
+  const cls = { admin:'role-admin', operator:'role-operator', viewer:'role-viewer' };
+  const lbl = { admin:'Admin', operator:'Operator', viewer:'Viewer' };
+  return `<span class="${cls[r] || 'role-viewer'}">${lbl[r] || r}</span>`;
+}
+
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+}
+function fmtDateTime(iso) {
+  return new Date(iso).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+function fmtTime(iso) {
+  return new Date(iso).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* ======================================================
+   TOAST
+====================================================== */
+function toast(msg, type='success') {
+  const icon = { success:'check', danger:'alert-circle', info:'info-circle' }[type] || 'check';
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<i class="ti ti-${icon}"></i> ${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'slideOut .25s ease forwards';
+    setTimeout(() => el.remove(), 300);
+  }, 3500);
+}
+
+/* ======================================================
+   LOGIN
+====================================================== */
+function renderLoginUsers() {
+  document.getElementById('login-user-list').innerHTML = users.map(u => `
+    <button class="login-user-btn" onclick="selectLoginUser('${u.id}')">
+      <div class="av" style="background:${u.color}22;color:${u.color}">${initials(u.name)}</div>
+      <div class="info">
+        <div class="uname">${u.name}</div>
+        <div style="margin-top:3px">${roleBadge(u.role)}</div>
+      </div>
+      <i class="ti ti-chevron-right" style="color:var(--text3);margin-left:auto"></i>
+    </button>`).join('');
+}
+
+function selectLoginUser(id) {
+  loginTarget = users.find(u => u.id === id);
+  document.getElementById('login-pw-wrap').style.display = 'block';
+  document.getElementById('login-pw-input').value = '';
+  document.getElementById('login-err').innerHTML = '';
+  setTimeout(() => document.getElementById('login-pw-input').focus(), 80);
+}
+function cancelPw() {
+  loginTarget = null;
+  document.getElementById('login-pw-wrap').style.display = 'none';
+}
+function doLogin() {
+  const pw = document.getElementById('login-pw-input').value;
+  if (!loginTarget) return;
+  if (pw === loginTarget.pw) {
+    currentUser = loginTarget;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    applyRoleNav();
+    renderHeader();
+    populateSelects();
+    renderAll();
+    renderScanHist();
+  } else {
+    document.getElementById('login-err').innerHTML =
+      `<div class="alert alert-danger"><i class="ti ti-alert-circle"></i> Password salah, coba lagi.</div>`;
+  }
+}
+function logout() {
+  currentUser = null;
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pw-wrap').style.display = 'none';
+  loginTarget = null;
+  renderLoginUsers();
+}
+
+/* ======================================================
+   HEADER & NAV
+====================================================== */
+function renderHeader() {
+  const u = currentUser;
+  document.getElementById('hdr-name').textContent = u.name;
+  document.getElementById('hdr-role').innerHTML = roleBadge(u.role);
+  const av = document.getElementById('hdr-av');
+  av.textContent = initials(u.name);
+  av.style.cssText = `background:${u.color}33;color:${u.color};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600`;
+}
+
+function applyRoleNav() {
+  const role = currentUser.role;
+  document.querySelectorAll('#main-nav .nav-tab').forEach(tab => {
+    const roles = tab.dataset.roles;
+    if (roles && !roles.split(',').includes(role)) tab.classList.add('locked');
+    else tab.classList.remove('locked');
+  });
+}
+
+document.getElementById('main-nav').addEventListener('click', e => {
+  const tab = e.target.closest('.nav-tab');
+  if (!tab || tab.classList.contains('locked')) return;
+  goTab(tab.dataset.tab);
+});
+
+function goTab(t) {
+  document.querySelectorAll('#main-nav .nav-tab').forEach(el => el.classList.remove('active'));
+  const tab = document.querySelector(`#main-nav .nav-tab[data-tab="${t}"]`);
+  if (tab) tab.classList.add('active');
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+  const sec = document.getElementById('tab-' + t);
+  if (sec) sec.classList.add('active');
+  // Tab-specific init
+  if (t === 'rak')       renderRak();
+  if (t === 'scan')      renderScanHist();
+  if (t === 'label')     { fillLabelDropdown(); renderLabel(); }
+  if (t === 'users')     renderUsers();
+  if (t === 'log')       renderLog();
+  if (t === 'fifo')      renderFifo();
+  if (t === 'inventory') renderInv();
+}
+
+/* ======================================================
+   SELECT POPULATION
+====================================================== */
+function makeOptions(n, prefix='') {
+  return Array.from({length:n}, (_,i) => `<option value="${i+1}">${prefix}${i+1}</option>`).join('');
+}
+function populateSelects() {
+  ['s-rak','lbl-rak'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = makeOptions(RACKS); });
+  ['s-bay','lbl-bay'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = makeOptions(BAYS); });
+  ['s-lvl','lbl-lvl'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = makeOptions(LEVELS); });
+  ['s-rak','s-bay','s-lvl','s-gd','s-sisi'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateScanPreview);
+  });
+  updateScanPreview();
+}
+
+/* ======================================================
+   SCAN MASUK
+====================================================== */
+function updateScanPreview() {
+  const g = document.getElementById('s-gd').value;
+  const r = document.getElementById('s-rak').value;
+  const b = document.getElementById('s-bay').value;
+  const l = document.getElementById('s-lvl').value;
+  const s = document.getElementById('s-sisi').value;
+  document.getElementById('s-loc-text').textContent = `${GN[g]}: R${r}-${b}-${l}-${s}`;
+  const conflict = inventory.find(x =>
+    x.status === 'in' && x.gudang === g &&
+    x.rak == r && x.bay == b && x.lvl == l && x.sisi === s
+  );
+  document.getElementById('s-conflict-info').innerHTML = conflict
+    ? `<span style="color:var(--amber-dk)"><i class="ti ti-alert-triangle" style="font-size:12px"></i> Slot ada isi: ${conflict.nama} (${conflict.qty} ${conflict.sat})</span>`
+    : `<span style="color:var(--blue-dk)">Slot kosong ✓</span>`;
+}
+
+function submitScan() {
+  if (currentUser.role === 'viewer') { toast('Akses ditolak untuk Viewer.', 'danger'); return; }
+  const nama = document.getElementById('s-nama').value.trim();
+  if (!nama) { toast('Nama barang wajib diisi.', 'danger'); return; }
+  const qty = parseInt(document.getElementById('s-qty').value) || 1;
+  const sat = document.getElementById('s-sat').value;
+  const exp = document.getElementById('s-exp').value;
+  const g = document.getElementById('s-gd').value;
+  const r = parseInt(document.getElementById('s-rak').value);
+  const b = parseInt(document.getElementById('s-bay').value);
+  const l = parseInt(document.getElementById('s-lvl').value);
+  const s = document.getElementById('s-sisi').value;
+  const item = {
+    id: uid(), nama, qty, sat, exp,
+    gudang: g, rak: r, bay: b, lvl: l, sisi: s,
+    status: 'in',
+    tanggal: new Date().toISOString(),
+    user: currentUser.name, userId: currentUser.id
+  };
+  inventory.push(item);
+  addLog('MASUK', item);
+  lastScanItem = item;
+  saveAll();
+  toast(`${nama} → ${GN[g]}: R${r}-${b}-${l}-${s}`, 'success');
+  renderAll();
+  renderScanHist();
+  // auto-fill label
+  fillLabelFromInventory(item);
+}
+
+function clearScan() {
+  document.getElementById('s-nama').value = '';
+  document.getElementById('s-qty').value = '1';
+  document.getElementById('s-exp').value = '';
+  updateScanPreview();
+}
+
+function scanGoLabel() {
+  goTab('label');
+  fillLabelDropdown();
+  if (lastScanItem) fillLabelFromInventory(lastScanItem);
+  renderLabel();
+}
+
+function renderScanHist() {
+  const today = new Date().toDateString();
+  const data = actLog.filter(x => new Date(x.waktu).toDateString() === today).slice(0,20);
+  const el = document.getElementById('scan-history');
+  if (!el) return;
+  if (!data.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text3);padding:8px 0">Belum ada scan hari ini.</p>'; return; }
+  el.innerHTML = data.map(x => `
+    <div class="hi">
+      <div>
+        <div style="font-size:13px;font-weight:500">${x.nama}</div>
+        <div style="font-size:11px;color:var(--text2)">${locFull(x.gudang,x.rak,x.bay,x.lvl,x.sisi)}</div>
+        <div style="font-size:11px;color:var(--text3)">${x.user} · ${fmtTime(x.waktu)}</div>
+      </div>
+      <span class="pill-in">${x.qty} ${x.sat}</span>
+    </div>`).join('');
+}
+
+/* ======================================================
+   LOG
+====================================================== */
+function addLog(aksi, item) {
+  actLog.unshift({
+    id: uid(), aksi,
+    nama: item.nama,
+    gudang: item.gudang, rak: item.rak, bay: item.bay, lvl: item.lvl, sisi: item.sisi,
+    qty: item.qty, sat: item.sat || '',
+    user: currentUser.name, userId: currentUser.id, userRole: currentUser.role,
+    waktu: new Date().toISOString()
+  });
+  if (actLog.length > 1000) actLog = actLog.slice(0, 1000);
+}
+
+/* ======================================================
+   DASHBOARD
+====================================================== */
+function renderDashboard() {
+  const active = inventory.filter(x => x.status === 'in');
+  document.getElementById('m-total').textContent = active.reduce((a,x) => a + x.qty, 0);
+  const slots = new Set(active.map(x => `${x.gudang}-${x.rak}-${x.bay}-${x.lvl}-${x.sisi}`)).size;
+  document.getElementById('m-slots').textContent = slots;
+  document.getElementById('m-near').textContent = active.filter(x => expiryStatus(x.exp) === 'near').length;
+  document.getElementById('m-exp').textContent  = active.filter(x => expiryStatus(x.exp) === 'expired').length;
+  document.getElementById('hdr-count').textContent = active.length + ' item';
+
+  // Kapasitas
+  document.getElementById('dash-caps').innerHTML = GUDANGS.map(g => {
+    const items = active.filter(x => x.gudang === g);
+    const sl = new Set(items.map(x => `${x.rak}-${x.bay}-${x.lvl}-${x.sisi}`)).size;
+    const total = RACKS * BAYS * LEVELS * 2;
+    const pct = Math.round(sl / total * 100);
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:500">${GN[g]}</span>
+        <span style="font-size:11px;color:var(--text2)">${sl.toLocaleString()} / ${total.toLocaleString()} slot · ${pct}%</span>
+      </div>
+      <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:var(--blue);border-radius:3px;transition:width .4s"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Aktivitas
+  const recent = actLog.slice(0, 10);
+  document.getElementById('dash-activity').innerHTML = !recent.length
+    ? '<p style="font-size:13px;color:var(--text3)">Belum ada aktivitas.</p>'
+    : recent.map(x => `
+        <div class="hi">
+          <div>
+            <div style="font-size:13px;font-weight:500">${x.nama}</div>
+            <div style="font-size:11px;color:var(--text2)">${locFull(x.gudang,x.rak,x.bay,x.lvl,x.sisi)}</div>
+            <div style="font-size:11px;color:var(--text3)">${x.user} · ${fmtDateTime(x.waktu)}</div>
+          </div>
+          <span class="${x.aksi==='MASUK'?'pill-in':x.aksi==='KELUAR'?'pill-out':'pill-pick'}">${x.aksi}</span>
+        </div>`).join('');
+
+  // Expiry alerts
+  const alerts = active.filter(x => expiryStatus(x.exp) !== 'ok')
+    .sort((a,b) => new Date(a.exp) - new Date(b.exp)).slice(0,10);
+  const eEl = document.getElementById('dash-expiry');
+  if (!alerts.length) {
+    eEl.innerHTML = '<p style="color:var(--green-dk);font-size:13px"><i class="ti ti-check"></i> Tidak ada barang yang mendekati expired.</p>';
+  } else {
+    eEl.innerHTML = `<div class="tbl-wrap"><table>
+      <thead><tr><th>Nama</th><th>Lokasi</th><th>Qty</th><th>Expired</th><th>Status</th></tr></thead>
+      <tbody>${alerts.map(x => `<tr>
+        <td style="font-weight:500">${x.nama}</td>
+        <td><span class="loc-code">${locCode(x.rak,x.bay,x.lvl,x.sisi)}</span> <span style="font-size:11px;color:var(--text2)">${GN[x.gudang]}</span></td>
+        <td>${x.qty} ${x.sat}</td>
+        <td style="font-size:12px">${x.exp || '—'}</td>
+        <td>${expBadge(x.exp)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+}
+
+/* ======================================================
+   FIFO / FEFO
+====================================================== */
+function renderFifo() {
+  const q = (document.getElementById('ff-nama').value || '').toLowerCase().trim();
+  const mode = document.getElementById('ff-mode').value;
+  const need = parseInt(document.getElementById('ff-need').value) || 1;
+  const el = document.getElementById('ff-result');
+  if (!q) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--text3);padding:8px 0">Ketik nama barang untuk melihat rekomendasi pengambilan.</p>';
+    return;
+  }
+  const matches = inventory.filter(x => x.status === 'in' && x.nama.toLowerCase().includes(q));
+  if (!matches.length) {
+    el.innerHTML = '<div class="alert alert-danger"><i class="ti ti-search"></i> Barang tidak ditemukan di inventori aktif.</div>';
+    return;
+  }
+  let sorted = [...matches];
+  if (mode === 'fefo') {
+    sorted.sort((a,b) => {
+      if (!a.exp && !b.exp) return new Date(a.tanggal) - new Date(b.tanggal);
+      if (!a.exp) return 1;
+      if (!b.exp) return -1;
+      return new Date(a.exp) - new Date(b.exp);
+    });
+  } else {
+    sorted.sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
+  }
+
+  let remaining = need;
+  let html = `<div style="margin-bottom:12px;font-size:13px;color:var(--text2)">
+    Metode: <strong>${mode === 'fefo' ? 'FEFO — expired terdekat dahulu' : 'FIFO — masuk pertama dahulu'}</strong> &nbsp;·&nbsp;
+    Kebutuhan: <strong>${need} unit</strong>
+  </div>`;
+
+  let usedCount = 0;
+  sorted.forEach((item, i) => {
+    if (remaining <= 0) return;
+    const take = Math.min(remaining, item.qty);
+    remaining -= take;
+    usedCount++;
+    const es = expiryStatus(item.exp);
+    const cls = es === 'expired' ? 'exp-danger' : es === 'near' ? 'exp-warn' : '';
+    const numCls = es === 'expired' ? 'danger' : es === 'near' ? 'warn' : '';
+    html += `<div class="pick-card ${cls}">
+      <div class="pick-num ${numCls}">${i+1}</div>
+      <div class="pick-body">
+        <div class="pick-name">${item.nama} ${expBadge(item.exp)}</div>
+        <div class="pick-meta">
+          <span><i class="ti ti-map-pin"></i> <span class="loc-code">${locCode(item.rak,item.bay,item.lvl,item.sisi)}</span> ${GN[item.gudang]}</span>
+          <span><i class="ti ti-package"></i> Stok: ${item.qty} ${item.sat}</span>
+          <span><i class="ti ti-arrow-down-right"></i> <strong>Ambil: ${take} ${item.sat}</strong></span>
+          <span><i class="ti ti-calendar"></i> Masuk: ${fmtDate(item.tanggal)}</span>
+          ${item.exp ? `<span><i class="ti ti-calendar-event"></i> Exp: ${item.exp}</span>` : ''}
+        </div>
+      </div>
+      <div class="pick-actions">
+        <button class="btn btn-green btn-sm" onclick="pickItem('${item.id}',${take})">
+          <i class="ti ti-check"></i> Ambil ${take}
+        </button>
+        <button class="btn btn-sm" onclick="openMod('${item.id}')">
+          <i class="ti ti-eye"></i>
+        </button>
+      </div>
+    </div>`;
+  });
+
+  if (remaining > 0) {
+    html += `<div class="alert alert-amber"><i class="ti ti-alert-triangle"></i>
+      Stok kurang <strong>${remaining} unit</strong> dari kebutuhan ${need}. Total tersedia: ${need - remaining} unit dari ${usedCount} lokasi.
+    </div>`;
+  } else {
+    html += `<div class="alert alert-success"><i class="ti ti-check"></i>
+      Kebutuhan <strong>${need} unit</strong> terpenuhi dari ${usedCount} lokasi.
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+function pickItem(id, qty) {
+  if (currentUser.role === 'viewer') { toast('Akses ditolak.', 'danger'); return; }
+  const item = inventory.find(x => x.id === id);
+  if (!item) return;
+  if (qty >= item.qty) {
+    item.status = 'out';
+    item.tanggalKeluar = new Date().toISOString();
+  } else {
+    item.qty -= qty;
+  }
+  addLog('PICK', { ...item, qty, sat: item.sat });
+  saveAll();
+  toast(`Diambil ${qty} ${item.sat} — ${item.nama}`, 'success');
+  renderAll();
+  renderFifo();
+}
+
+/* ======================================================
+   INVENTORI
+====================================================== */
+function renderInv() {
+  const q  = (document.getElementById('inv-q').value || '').toLowerCase();
+  const gf = document.getElementById('inv-gf').value;
+  const ef = document.getElementById('inv-ef').value;
+  let data = inventory.filter(x => x.status === 'in');
+  if (q)  data = data.filter(x => x.nama.toLowerCase().includes(q) || locCode(x.rak,x.bay,x.lvl,x.sisi).includes(q));
+  if (gf) data = data.filter(x => x.gudang === gf);
+  if (ef) data = data.filter(x => expiryStatus(x.exp) === ef);
+  const tbody = document.getElementById('inv-body');
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px">Tidak ada data yang sesuai filter.</td></tr>`;
+  } else {
+    tbody.innerHTML = data.map(x => `<tr>
+      <td style="font-weight:500">${x.nama}</td>
+      <td><span class="loc-code">${locCode(x.rak,x.bay,x.lvl,x.sisi)}</span></td>
+      <td><span class="tag tag-blue">${GN[x.gudang]}</span></td>
+      <td>${x.qty}</td>
+      <td>${x.sat}</td>
+      <td style="font-size:12px">${x.exp || '—'}</td>
+      <td>${expBadge(x.exp)}</td>
+      <td style="font-size:11px;color:var(--text2)">${fmtDate(x.tanggal)}</td>
+      <td style="font-size:12px">${x.user || '—'}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-xs" onclick="openMod('${x.id}')"><i class="ti ti-eye"></i></button>
+        <button class="btn btn-xs btn-green" onclick="quickLabel('${x.id}')"><i class="ti ti-printer"></i></button>
+        ${currentUser.role !== 'viewer' ? `<button class="btn btn-xs btn-danger" onclick="removeItem('${x.id}')"><i class="ti ti-arrow-bar-right"></i></button>` : ''}
+      </td>
+    </tr>`).join('');
+  }
+  document.getElementById('inv-count').textContent = `Menampilkan ${data.length} dari ${inventory.filter(x=>x.status==='in').length} item aktif.`;
+}
+
+function quickLabel(id) {
+  const item = inventory.find(x => x.id === id);
+  if (!item) return;
+  fillLabelFromInventory(item);
+  goTab('label');
+  fillLabelDropdown();
+  renderLabel();
+}
+
+function exportCSV() {
+  const data = inventory.filter(x => x.status === 'in');
+  const rows = [
+    ['ID','Nama','Gudang','Rak','Bay','Level','Sisi','Qty','Satuan','Expired','Tgl Masuk','Input Oleh'],
+    ...data.map(x => [x.id, x.nama, GN[x.gudang], x.rak, x.bay, x.lvl, x.sisi, x.qty, x.sat, x.exp||'', new Date(x.tanggal).toLocaleDateString('id-ID'), x.user||''])
+  ];
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+  a.download = `inventori-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+/* ======================================================
+   VISUALISASI RAK
+====================================================== */
+function selGudang(g) {
+  selectedGudang = g;
+  document.querySelectorAll('.gudang-tab').forEach(el => el.classList.toggle('active', el.dataset.g === g));
+  renderRak();
+}
+
+function renderRak() {
+  const g = selectedGudang;
+  const active = inventory.filter(x => x.status === 'in' && x.gudang === g);
+  const sl = new Set(active.map(x => `${x.rak}-${x.bay}-${x.lvl}-${x.sisi}`)).size;
+  document.getElementById('rak-g-stat').textContent = `${sl} slot terisi · ${active.length} item`;
+
+  let html = '';
+  for (let r = 1; r <= RACKS; r++) {
+    html += `<div class="rak-unit">
+      <div class="rak-unit-label">Rak ${r}</div>
+      <div class="rak-cols-label">${Array.from({length:BAYS},(_,i)=>`<div class="rak-col-lbl">${i+1}</div>`).join('')}</div>`;
+    for (let l = LEVELS; l >= 1; l--) {
+      html += `<div class="rak-lvl-row"><div class="rak-lvl-lbl">${l}</div>`;
+      for (let b = 1; b <= BAYS; b++) {
+        const hasL = active.some(x => x.rak===r && x.bay===b && x.lvl===l && x.sisi==='L');
+        const hasR = active.some(x => x.rak===r && x.bay===b && x.lvl===l && x.sisi==='R');
+        const cls = hasL && hasR ? 'oLR' : hasL ? 'oL' : hasR ? 'oR' : 'emp';
+        const tip = JSON.stringify({r,b,l,g});
+        html += `<div class="rc ${cls}" onclick='showRakTip(${tip.replace(/'/g,"\\'")})'></div>`;
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  document.getElementById('rak-container').innerHTML = html;
+}
+
+function showRakTip(d) {
+  const items = inventory.filter(x =>
+    x.status==='in' && x.gudang===d.g && x.rak===d.r && x.bay===d.b && x.lvl===d.l
+  );
+  const el = document.getElementById('rak-tip');
+  if (!items.length) {
+    el.innerHTML = `<span style="color:var(--text3)">Rak ${d.r} — Bay ${d.b} — Level ${d.l} (${GN[d.g]}): <em>Kosong</em></span>`;
+    return;
+  }
+  el.innerHTML = `<strong>Rak ${d.r} — Bay ${d.b} — Level ${d.l} (${GN[d.g]}):</strong> ` +
+    items.map(x => `<span style="margin-left:10px"><span class="loc-code">${x.sisi}</span> ${x.nama} (${x.qty} ${x.sat}) ${expBadge(x.exp)} <button class="btn btn-xs" onclick="openMod('${x.id}')"><i class="ti ti-eye"></i></button></span>`).join('');
+}
+
+/* ======================================================
+   LABEL CETAK
+====================================================== */
+function fillLabelDropdown() {
+  const sel = document.getElementById('lbl-item');
+  const active = inventory.filter(x => x.status === 'in');
+  sel.innerHTML = '<option value="">— Pilih barang dari inventori —</option>' +
+    active.map(x => `<option value="${x.id}">${x.nama} — ${locCode(x.rak,x.bay,x.lvl,x.sisi)} (${GN[x.gudang]})</option>`).join('');
+}
+
+function fillLabelFromItem() {
+  const id = document.getElementById('lbl-item').value;
+  if (!id) { renderLabel(); return; }
+  const item = inventory.find(x => x.id === id);
+  if (item) fillLabelFromInventory(item);
+}
+
+function fillLabelFromInventory(item) {
+  document.getElementById('lbl-nama').value = item.nama;
+  document.getElementById('lbl-kode').value = item.id.toUpperCase().slice(-8);
+  document.getElementById('lbl-gd').value   = item.gudang;
+  document.getElementById('lbl-rak').value  = item.rak;
+  document.getElementById('lbl-bay').value  = item.bay;
+  document.getElementById('lbl-lvl').value  = item.lvl;
+  document.getElementById('lbl-sisi').value = item.sisi;
+  document.getElementById('lbl-qty').value  = item.qty;
+  document.getElementById('lbl-sat').value  = item.sat || 'pcs';
+  document.getElementById('lbl-exp').value  = item.exp || '';
+  renderLabel();
+}
+
+function getLabelData() {
+  return {
+    nama:  document.getElementById('lbl-nama').value || 'NAMA PRODUK',
+    kode:  document.getElementById('lbl-kode').value || 'SKU-000',
+    gudang:document.getElementById('lbl-gd').value,
+    rak:   document.getElementById('lbl-rak').value,
+    bay:   document.getElementById('lbl-bay').value,
+    lvl:   document.getElementById('lbl-lvl').value,
+    sisi:  document.getElementById('lbl-sisi').value,
+    qty:   document.getElementById('lbl-qty').value || '1',
+    sat:   document.getElementById('lbl-sat').value,
+    exp:   document.getElementById('lbl-exp').value,
+    size:  document.getElementById('lbl-size').value,
+    count: parseInt(document.getElementById('lbl-count').value) || 1
+  };
+}
+
+function buildLabelHtml(d) {
+  const loc = `${d.rak}-${d.bay}-${d.lvl}-${d.sisi}`;
+  const today = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const sizes = {
+    sm: { w:'160px', title:'11px', bar:'20px', loc:'16px', meta:'9px' },
+    md: { w:'260px', title:'13px', bar:'28px', loc:'24px', meta:'11px' },
+    lg: { w:'370px', title:'16px', bar:'36px', loc:'30px', meta:'12px' }
+  };
+  const sz = sizes[d.size] || sizes.md;
+  return `<div class="wms-label" style="width:${sz.w}">
+    <div class="l-title" style="font-size:${sz.title}">${d.nama}</div>
+    <div class="l-barcode" style="font-size:${sz.bar}">${d.kode}</div>
+    <div class="l-loc" style="font-size:${sz.loc}">${GN[d.gudang]}: R${loc}</div>
+    <div class="l-row">
+      <div>
+        <div>Qty: ${d.qty} ${d.sat}</div>
+        <div>Cetak: ${today}</div>
+      </div>
+      <div style="text-align:right">
+        <div>Exp: ${d.exp || '—'}</div>
+        <div>Sisi: ${d.sisi === 'L' ? 'KIRI' : 'KANAN'}</div>
+      </div>
+    </div>
+    <div class="l-foot">WMS Gudang · ${currentUser ? currentUser.name : ''}</div>
+  </div>`;
+}
+
+function renderLabel() {
+  const d = getLabelData();
+  document.getElementById('label-preview-wrap').innerHTML = buildLabelHtml(d);
+}
+
+function printLabel() {
+  const d = getLabelData();
+  const labels = Array.from({length: d.count}, () => buildLabelHtml(d)).join('<div style="height:10px"></div>');
+  const w = window.open('', '_blank', 'width=700,height=600');
+  w.document.write(`<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Label WMS</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'JetBrains Mono',monospace;padding:16px;background:#fff}
+  .wms-label{background:#fff;color:#000;border:2px solid #000;border-radius:4px;font-family:'JetBrains Mono',monospace;padding:12px 14px;display:inline-block;margin:4px}
+  .l-title{font-weight:700;text-align:center;border-bottom:1px solid #ccc;padding-bottom:8px;margin-bottom:8px;font-family:sans-serif}
+  .l-barcode{font-size:28px;letter-spacing:5px;text-align:center;border:1px solid #999;padding:5px;border-radius:3px;margin-bottom:8px;font-weight:700;overflow:hidden}
+  .l-loc{font-size:24px;font-weight:700;text-align:center;background:#EBF2FF;padding:6px;border-radius:3px;letter-spacing:2px;margin-bottom:8px}
+  .l-row{display:flex;justify-content:space-between;font-size:11px;border-top:1px solid #e0e0e0;padding-top:6px;margin-top:4px}
+  .l-foot{text-align:center;font-size:9px;color:#666;margin-top:6px;font-family:sans-serif}
+  @media print{body{padding:4px}@page{margin:6mm}}
+</style>
+</head>
+<body>
+  ${labels}
+  <script>window.onload=function(){window.print();setTimeout(function(){window.close();},600);}<\/script>
+</body></html>`);
+  w.document.close();
+}
+
+function downloadLabelHtml() {
+  const d = getLabelData();
+  const html = buildLabelHtml(d);
+  const blob = new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Label</title><style>.wms-label{font-family:monospace;border:2px solid #000;padding:12px;display:inline-block}.l-barcode{font-size:28px;letter-spacing:5px;border:1px solid #999;padding:4px;text-align:center;font-weight:700}.l-loc{font-size:24px;font-weight:700;text-align:center;background:#EBF2FF;padding:6px;letter-spacing:2px}.l-row{display:flex;justify-content:space-between;font-size:11px;border-top:1px solid #ccc;padding-top:6px;margin-top:4px}.l-foot{text-align:center;font-size:9px;color:#666;margin-top:6px}</style></head><body style="margin:16px">${html}</body></html>`], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `label-${d.nama.replace(/\s+/g,'-')}.html`;
+  a.click();
+}
+
+/* ======================================================
+   BARANG KELUAR
+====================================================== */
+function renderOutSearch() {
+  const q = (document.getElementById('out-q').value || '').toLowerCase();
+  const el = document.getElementById('out-results');
+  if (!q) { el.innerHTML = ''; return; }
+  const data = inventory.filter(x =>
+    x.status === 'in' && (x.nama.toLowerCase().includes(q) || locCode(x.rak,x.bay,x.lvl,x.sisi).includes(q))
+  );
+  if (!data.length) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--text3)">Tidak ditemukan.</p>';
+    return;
+  }
+  el.innerHTML = data.map(x => `
+    <div class="hi">
+      <div>
+        <div style="font-size:13px;font-weight:500">${x.nama}</div>
+        <div style="font-size:11px;color:var(--text2)">${locFull(x.gudang,x.rak,x.bay,x.lvl,x.sisi)} · ${x.qty} ${x.sat}</div>
+        <div style="font-size:11px;margin-top:2px">${expBadge(x.exp)}</div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="removeItem('${x.id}')">
+        <i class="ti ti-arrow-bar-right"></i> Keluar
+      </button>
+    </div>`).join('');
+}
+
+function removeItem(id) {
+  if (currentUser.role === 'viewer') { toast('Akses ditolak.', 'danger'); return; }
+  const item = inventory.find(x => x.id === id);
+  if (!item) return;
+  item.status = 'out';
+  item.tanggalKeluar = new Date().toISOString();
+  addLog('KELUAR', item);
+  saveAll();
+  toast(`${item.nama} dikeluarkan dari ${GN[item.gudang]}`, 'info');
+  renderAll();
+  renderOutSearch();
+  renderOutHist();
+}
+
+function renderOutHist() {
+  const data = inventory.filter(x => x.status === 'out').reverse().slice(0, 30);
+  const el = document.getElementById('out-hist');
+  if (!el) return;
+  if (!data.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text3)">Belum ada barang keluar.</p>'; return; }
+  el.innerHTML = data.map(x => `
+    <div class="hi">
+      <div>
+        <div style="font-size:13px;font-weight:500">${x.nama}</div>
+        <div style="font-size:11px;color:var(--text2)">${locFull(x.gudang,x.rak,x.bay,x.lvl,x.sisi)}</div>
+        <div style="font-size:11px;color:var(--text3)">${x.user || '—'} · ${fmtDateTime(x.tanggalKeluar || x.tanggal)}</div>
+      </div>
+      <span style="font-size:13px;font-weight:500">${x.qty} ${x.sat}</span>
+    </div>`).join('');
+}
+
+/* ======================================================
+   USER MANAGEMENT
+====================================================== */
+function renderUsers() {
+  const el = document.getElementById('user-list-wrap');
+  if (currentUser.role !== 'admin') {
+    el.innerHTML = '<p style="font-size:13px;color:var(--text3)">Hanya Admin yang dapat mengelola pengguna.</p>';
+    return;
+  }
+  el.innerHTML = users.map(u => `
+    <div class="user-row">
+      <div class="user-av" style="background:${u.color}22;color:${u.color}">${initials(u.name)}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500">${u.name} <span style="font-size:12px;color:var(--text2);font-weight:400">@${u.username}</span></div>
+        <div style="margin-top:3px">${roleBadge(u.role)}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">${actLog.filter(l=>l.userId===u.id).length} aksi</div>
+      ${u.id !== currentUser.id
+        ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')"><i class="ti ti-trash"></i></button>`
+        : '<span style="font-size:11px;color:var(--text3);padding:0 8px">Akun aktif</span>'}
+    </div>`).join('');
+}
+
+function openAddUser() { document.getElementById('adduser-ov').classList.add('show'); }
+function closeAddUser() { document.getElementById('adduser-ov').classList.remove('show'); }
+
+function saveNewUser() {
+  const name = document.getElementById('nu-name').value.trim();
+  const username = document.getElementById('nu-user').value.trim().toLowerCase();
+  const pw = document.getElementById('nu-pw').value;
+  const role = document.getElementById('nu-role').value;
+  const errEl = document.getElementById('nu-err');
+  if (!name || !username || !pw) {
+    errEl.innerHTML = '<div class="alert alert-danger"><i class="ti ti-alert-circle"></i> Semua field wajib diisi.</div>';
+    return;
+  }
+  if (/\s/.test(username)) {
+    errEl.innerHTML = '<div class="alert alert-danger"><i class="ti ti-alert-circle"></i> Username tidak boleh mengandung spasi.</div>';
+    return;
+  }
+  if (users.find(u => u.username === username)) {
+    errEl.innerHTML = '<div class="alert alert-danger"><i class="ti ti-alert-circle"></i> Username sudah digunakan.</div>';
+    return;
+  }
+  const color = AV_COLORS[users.length % AV_COLORS.length];
+  users.push({ id: uid(), name, username, pw, role, color });
+  saveAll();
+  renderLoginUsers();
+  renderUsers();
+  closeAddUser();
+  errEl.innerHTML = '';
+  ['nu-name','nu-user','nu-pw'].forEach(id => document.getElementById(id).value = '');
+  toast(`User ${name} berhasil ditambahkan.`, 'success');
+}
+
+function deleteUser(id) {
+  if (!confirm('Hapus pengguna ini? Semua log aktivitasnya tetap tersimpan.')) return;
+  users = users.filter(u => u.id !== id);
+  saveAll();
+  renderUsers();
+  renderLoginUsers();
+  toast('Pengguna dihapus.', 'info');
+}
+
+/* ======================================================
+   LOG
+====================================================== */
+function renderLog() {
+  const uf = document.getElementById('log-uf').value;
+  const af = document.getElementById('log-af').value;
+
+  // Populate user filter
+  const unames = [...new Set(actLog.map(x => JSON.stringify({id:x.userId,name:x.user})))].map(s=>JSON.parse(s));
+  const curUf = uf;
+  const sel = document.getElementById('log-uf');
+  sel.innerHTML = '<option value="">Semua User</option>' +
+    unames.map(u => `<option value="${u.id}" ${u.id===curUf?'selected':''}>${u.name}</option>`).join('');
+
+  let data = actLog;
+  if (uf) data = data.filter(x => x.userId === uf);
+  if (af) data = data.filter(x => x.aksi === af);
+
+  document.getElementById('log-body').innerHTML = !data.length
+    ? `<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">Tidak ada log.</td></tr>`
+    : data.slice(0, 200).map(x => `<tr>
+        <td style="font-size:11px;white-space:nowrap">${fmtDateTime(x.waktu)}</td>
+        <td style="font-size:12px;font-weight:500">${x.user}</td>
+        <td>${roleBadge(x.userRole || 'viewer')}</td>
+        <td><span class="${x.aksi==='MASUK'?'pill-in':x.aksi==='KELUAR'?'pill-out':'pill-pick'}">${x.aksi}</span></td>
+        <td style="font-weight:500">${x.nama}</td>
+        <td><span class="loc-code">${locCode(x.rak,x.bay,x.lvl,x.sisi)}</span> <span style="font-size:11px;color:var(--text2)">${GN[x.gudang]}</span></td>
+        <td>${x.qty} ${x.sat}</td>
+      </tr>`).join('');
+}
+
+/* ======================================================
+   MODAL
+====================================================== */
+function openMod(id) {
+  const item = inventory.find(x => x.id === id);
+  if (!item) return;
+  modalItemId = id;
+  document.getElementById('modal-title').textContent = item.nama;
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-loc-big">${locCode(item.rak,item.bay,item.lvl,item.sisi)}</div>
+    <table style="width:100%;font-size:13px">
+      <tr><td style="color:var(--text2);padding:5px 0">Gudang</td><td style="text-align:right;font-weight:500">${GN[item.gudang]}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Rak — Bay — Level</td><td style="text-align:right;font-weight:500">Rak ${item.rak} — Bay ${item.bay} — Level ${item.lvl}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Sisi</td><td style="text-align:right">${item.sisi === 'L' ? 'Kiri (L)' : 'Kanan (R)'}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Qty</td><td style="text-align:right;font-weight:500">${item.qty} ${item.sat}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Expired</td><td style="text-align:right">${item.exp || '—'} &nbsp; ${expBadge(item.exp)}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Status</td><td style="text-align:right"><span class="${item.status==='in'?'pill-in':'pill-out'}">${item.status==='in'?'Aktif di Gudang':'Sudah Keluar'}</span></td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Tanggal Masuk</td><td style="text-align:right">${fmtDateTime(item.tanggal)}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Diinput oleh</td><td style="text-align:right">${item.user || '—'}</td></tr>
+    </table>`;
+  document.getElementById('modal-actions').innerHTML = `
+    <button class="btn btn-sm" onclick="closeMod()"><i class="ti ti-x"></i> Tutup</button>
+    <button class="btn btn-sm btn-green" onclick="quickLabel('${id}');closeMod()"><i class="ti ti-printer"></i> Cetak Label</button>
+    ${item.status === 'in' && currentUser.role !== 'viewer'
+      ? `<button class="btn btn-sm btn-danger" onclick="removeItem('${id}');closeMod()"><i class="ti ti-arrow-bar-right"></i> Keluarkan</button>`
+      : ''}`;
+  document.getElementById('modal-ov').classList.add('show');
+}
+function closeMod() { document.getElementById('modal-ov').classList.remove('show'); }
+
+/* ======================================================
+   RENDER ALL
+====================================================== */
+function renderAll() {
+  renderDashboard();
+  renderInv();
+  renderOutHist();
+}
+
+/* ======================================================
+   INIT
+====================================================== */
+renderLoginUsers();
+</script>
+</body>
+</html>
